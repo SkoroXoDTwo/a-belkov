@@ -6,7 +6,7 @@ import { Brand, Nav, NavItem, SidebarRoot } from "@/components/layout/Sidebar.st
 export function Sidebar({ items }: SidebarProps) {
   return (
     <SidebarRoot>
-      <Brand>foto</Brand>
+      <Brand>Belkov</Brand>
       <Nav aria-label="Навигация">
         {items.map((item) => (
           <NavItem key={item.id} href={item.href} $active={Boolean(item.active)}>
