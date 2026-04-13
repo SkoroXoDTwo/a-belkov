@@ -48,3 +48,30 @@ Current MVP scope includes:
 - Add admin-only section for metadata editing.
 - Migrate image storage from local disk to S3-compatible storage.
 - Add search/filtering and optional extra sections in sidebar.
+
+## Артефакты Деплоя (Важно)
+- Полный runbook по серверу: `docs/SERVER_RUNBOOK.md`.
+- Путь проекта на сервере: `/opt/a-belkov`.
+- Продакшн-стек: `docker-compose.yml` (`app`, `db`, `caddy`).
+- Конфиг реверс-прокси/TLS: `Caddyfile`.
+- Сборка образа приложения: `Dockerfile`.
+- Скрипт старта контейнера: `docker/entrypoint.sh` (должен запускать `prisma generate` до старта приложения).
+- Шаблон env для Docker: `.env.docker.example`.
+- GitHub Actions workflow (CI + деплой): `.github/workflows/ci-deploy.yml`.
+
+## Секреты И Конфигурация Деплоя
+- Обязательные runtime-переменные:
+  - `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`
+  - `DATABASE_URL`
+  - `DOMAIN`, `ACME_EMAIL`, `APP_BASE_URL`
+  - `TELEGRAM_BOT_TOKEN`, `TELEGRAM_ALLOWED_CHAT_IDS`, `TELEGRAM_WEBHOOK_SECRET`
+- `DATABASE_URL` должен начинаться с `postgresql://` и использовать корректные учетные данные Postgres.
+
+## Операционные Заметки
+- Если `app` в статусе `Restarting`, а Caddy отдает 502, проверь:
+  - `docker compose logs --tail=200 app`
+  - `docker compose logs --tail=200 caddy`
+- Если учетные данные БД изменились после первой инициализации, пересоздай volume БД:
+  - `docker compose down -v && docker compose up -d --build`
+- Если папка миграций отсутствует, а схему нужно быстро применить:
+  - `docker compose exec app npx prisma db push`
