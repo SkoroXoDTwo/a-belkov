@@ -70,13 +70,63 @@ npm run build
 npm run start
 ```
 
+## Запуск через Docker + домен + HTTPS (рекомендуется для сервера)
+
+1. Установить Docker и Compose plugin на Ubuntu:
+
+```bash
+apt update
+apt install -y docker.io docker-compose-plugin
+systemctl enable --now docker
+```
+
+2. Подготовить env для контейнеров:
+
+```bash
+cp .env.docker.example .env.docker
+```
+
+Отредактировать `.env.docker`:
+- `POSTGRES_PASSWORD` (обязательно сменить);
+- `DATABASE_URL` (должен совпадать с `POSTGRES_*` и хостом `db`);
+- `DOMAIN` (твой домен, например `gallery.example.com`);
+- `ACME_EMAIL` (email для Let's Encrypt);
+- `APP_BASE_URL` (должен быть `https://<DOMAIN>`);
+- Telegram-переменные при необходимости.
+
+3. Проверить DNS и порты:
+- A-запись домена должна указывать на IP сервера.
+- Входящие порты `80` и `443` должны быть открыты.
+
+4. Запустить контейнеры:
+
+```bash
+docker compose up -d --build
+```
+
+5. Проверить статус:
+
+```bash
+docker compose ps
+docker compose logs -f app
+docker compose logs -f caddy
+```
+
+Приложение будет доступно на `https://<DOMAIN>`.
+
+Что важно:
+- Prisma миграции применяются автоматически при старте контейнера `app`.
+- HTTPS-сертификат выпускается и обновляется автоматически через Caddy (Let's Encrypt).
+- Изображения сохраняются в Docker volume `foto_uploads` и не теряются при перезапуске.
+- Данные PostgreSQL сохраняются в Docker volume `foto_db_data`.
+
 ## Настройка Telegram webhook
 
 1. Создать бота через BotFather и получить токен.
-2. Указать `TELEGRAM_BOT_TOKEN` в `.env`.
+2. Указать `TELEGRAM_BOT_TOKEN` в `.env.docker`.
 3. (Рекомендуется) указать `TELEGRAM_WEBHOOK_SECRET`.
 4. Добавить свой Telegram `chat_id` в `TELEGRAM_ALLOWED_CHAT_IDS`.
-5. Поднять приложение на URL, доступный из интернета.
+5. Убедиться, что сайт открывается по `https://<DOMAIN>`.
 6. Выполнить запрос установки webhook:
 
 ```bash
